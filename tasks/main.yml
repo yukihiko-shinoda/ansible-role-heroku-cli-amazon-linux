@@ -1,0 +1,11 @@
+---
+- name: download Heroku CLI installer
+  uri:
+    url: https://cli-assets.heroku.com/install.sh
+    dest: /tmp/install_heroku_cli.sh
+    creates: /tmp/install_heroku_cli.sh
+
+- name: install composer
+  command: sh /tmp/install_heroku_cli.sh
+  args:
+    creates: /usr/local/lib/heroku/bin/heroku
