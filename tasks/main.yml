@@ -1,4 +1,12 @@
 ---
+- name: set profile
+  template:
+    src: heroku_cli.sh.j2
+    dest: /etc/profile.d/heroku_cli.sh
+    owner: root
+    group: root
+    mode: 0644
+
 - name: download Heroku CLI installer
   uri:
     url: https://cli-assets.heroku.com/install.sh
@@ -6,13 +14,13 @@
     creates: /tmp/install_heroku_cli.sh
 
 - name: install Heroku CLI
-  command: sh /tmp/install_heroku_cli.sh
+  command: bash -lc 'sh /tmp/install_heroku_cli.sh'
   args:
     creates: /usr/local/lib/heroku/bin/heroku
 
 - name: set capabilitiy for running in container
   capabilities:
-    path: /usr/local/lib/heroku/node_modules/@heroku/foreman/nf.js
+    path: /usr/local/lib/heroku/node_modules/foreman/nf.js
     capability: cap_net_bind_service=+ep
 
 - name: set symlink for running in container
@@ -23,11 +31,17 @@
     owner: root
     group: root
 
+- name: check that the httpd.conf exists
+  stat:
+    path: /etc/httpd/conf/httpd.conf
+  register: stat_httpd_conf
+
 - name: remove default listen 80 port setting to listen by BuildPack config
   replace:
     path: /etc/httpd/conf/httpd.conf
     regexp: ^Listen\s80$
   notify: restart apache
+  when: stat_httpd_conf.stat.exists
 
 - name: remove php-fpm.conf to use BuildPack config
   file:
@@ -38,7 +52,7 @@
 
 - name: comment out validation of heroku library to bind service to privileged ports
   lineinfile:
-    path: /usr/local/lib/heroku/node_modules/@heroku/foreman/lib/proc.js
+    path: /usr/local/lib/heroku/node_modules/foreman/lib/proc.js
     insertbefore: '{{ item.insertbefore }}'
     line: '{{ item.line }}'
   with_items:
