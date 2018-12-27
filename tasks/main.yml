@@ -13,6 +13,10 @@
     dest: /tmp/install_heroku_cli.sh
     creates: /tmp/install_heroku_cli.sh
 
+- name: install tar to install Heroku CLI
+  yum:
+    name: tar
+
 - name: install Heroku CLI
   command: bash -lc 'sh /tmp/install_heroku_cli.sh'
   args:
